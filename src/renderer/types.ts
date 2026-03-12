@@ -329,7 +329,7 @@ export type FileSort = { by: 'mtime' | 'birthtime' | 'name' | 'serial', order: '
 export type ThemeName = 'system' | 'dark' | 'light'
 export type LanguageName = 'system' | Language
 export type ExportType = 'print' | 'pdf' | 'docx' | 'html' | 'rst' | 'adoc'
-export type SettingGroup = 'repos' | 'appearance' | 'editor' | 'image' | 'proxy' | 'other' | 'macros' | 'render'
+export type SettingGroup = 'repos' | 'appearance' | 'editor' | 'image' | 'proxy' | 'other' | 'macros' | 'render' | 'security'
 export type RegistryHostname = 'registry.npmjs.org' | 'registry.npmmirror.com'
 export type Keybinding = { type: 'workbench' | 'editor' | 'application', keys: string | null, command: string }
 
@@ -426,6 +426,15 @@ export interface BuildInSettings {
   'editor.enable-trigger-suggest-bulb': boolean,
   'editor.external-file-readonly': boolean,
   'editor.wrap-indent': 'same' | 'indent' | 'deepIndent' | 'none',
+  'security.profile': '' | 'safe' | 'workspace' | 'advanced',
+  'security.trusted-repositories': string[],
+  'security.allow-third-party-plugins': boolean,
+  'security.allow-macros': boolean,
+  'security.allow-code-run': boolean,
+  'security.allow-html-applets': boolean,
+  'security.allow-terminal': boolean,
+  'security.allow-rpc': boolean,
+  'security.allow-auto-update': boolean,
   'render.md-html': boolean,
   'render.md-breaks': boolean,
   'render.md-linkify': boolean,
@@ -449,7 +458,7 @@ export interface BuildInSettings {
   'plugin.image-hosting-picgo.enable-paste-image': boolean,
   'license': string,
   'mark': (BaseDoc & { name: string })[],
-  'updater.source': 'auto' | 'github' | 'yank-note',
+  'updater.source': 'disabled' | 'github',
   'doc-history.number-limit': number,
   'search.number-limit': number,
   'server.host': string,

@@ -31,6 +31,7 @@ import * as setting from '@fe/services/setting'
 import * as i18n from '@fe/services/i18n'
 import * as runner from '@fe/services/runner'
 import * as renderer from '@fe/services/renderer'
+import * as security from '@fe/services/security'
 import * as exportDoc from '@fe/services/export'
 import * as routines from '@fe/services/routines'
 import * as directives from '@fe/directives/index'
@@ -64,6 +65,7 @@ const ctx = Object.freeze({
   storage,
   embed,
   setting,
+  security,
   i18n,
   env,
   utils,

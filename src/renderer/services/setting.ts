@@ -63,6 +63,10 @@ function transformSettings (data: any) {
 
   data.theme = getThemeName()
 
+  if (!['disabled', 'github'].includes(data['updater.source'])) {
+    data['updater.source'] = 'disabled'
+  }
+
   delete data.repositories
 
   return data

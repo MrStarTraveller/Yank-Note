@@ -1,4 +1,5 @@
 import { getLogger } from '@fe/utils'
+import { shouldLoadThirdPartyPlugins } from '@fe/services/security'
 
 const logger = getLogger('plugin')
 
@@ -49,6 +50,11 @@ export function init <Ctx> (plugins: Plugin[], ctx: Ctx) {
   })
 
   window.registerPlugin = (plugin: Plugin) => register(plugin, ctx)
+
+  if (!shouldLoadThirdPartyPlugins()) {
+    logger.info('skip loading third-party plugins due to security policy')
+    return
+  }
 
   const script = window.document.createElement('script')
   script.src = '/api/plugins'

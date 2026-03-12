@@ -12,8 +12,9 @@ import { computed, defineComponent, h, nextTick, onBeforeUnmount, onMounted, ref
 import { triggerHook, registerHook, removeHook } from '@fe/core/hook'
 import { registerAction, removeAction } from '@fe/core/action'
 import { CtrlCmd } from '@fe/core/keybinding'
-import { toUri, isOutOfRepo } from '@fe/services/document'
+import { toUri } from '@fe/services/document'
 import * as renderer from '@fe/services/renderer'
+import { shouldUseSafeMode } from '@fe/services/security'
 import { getContextMenuItems, getRenderIframe, scrollTopTo } from '@fe/services/view'
 import { getSetting } from '@fe/services/setting'
 import { useContextMenu } from '@fe/support/ui/context-menu'
@@ -85,7 +86,7 @@ async function render (checkInComposition = false) {
   const content = currentContent.value
 
   const file = currentFile.value || null
-  const safeMode = isOutOfRepo(file) // enable safe mode for root repo
+  const safeMode = shouldUseSafeMode(file)
 
   const startTime = performance.now()
   renderEnv = { tokens: [], source: content, file, renderCount, safeMode }

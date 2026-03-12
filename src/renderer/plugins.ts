@@ -81,8 +81,9 @@ import viewLinks from '@fe/plugins/view-links'
 import insertTable from '@fe/plugins/insert-table'
 import textComparator from '@fe/plugins/text-comparator'
 import textAutospace from '@fe/plugins/text-autospace'
+import { isCapabilityEnabled, SECURITY_CAPABILITIES, shouldLoadThirdPartyPlugins } from '@fe/services/security'
 
-export default [
+const plugins = [
   buildInRenderers,
   customStyles,
   customKeybindings,
@@ -100,10 +101,10 @@ export default [
   statusBarPremium,
   statusBarTheme,
   statusBarHistory,
-  statusBarTerminal,
-  statusBarExtension,
   controlCenter,
   statusBarPresentation,
+  ...(isCapabilityEnabled(SECURITY_CAPABILITIES.TERMINAL) ? [statusBarTerminal] : []),
+  ...(shouldLoadThirdPartyPlugins() ? [statusBarExtension] : []),
   statusBarGet,
   editorPaste,
   editorAttachment,
@@ -124,7 +125,7 @@ export default [
   markdownWikiLinks,
   markdownHtml,
   markdownRenderVnode,
-  markdownMacro,
+  ...(isCapabilityEnabled(SECURITY_CAPABILITIES.MACROS) ? [markdownMacro] : []),
   markdownFrontMatter,
   markdownImsize,
   markdownToc,
@@ -137,11 +138,11 @@ export default [
   markdownFootnote,
   markdownKatex,
   markdownCodeCopy,
-  markdownCodeRun,
+  ...(isCapabilityEnabled(SECURITY_CAPABILITIES.CODE_RUN) ? [markdownCodeRun] : []),
   markdownPlantuml,
   markdownMindMap,
   markdownMermaid,
-  markdownApplet,
+  ...(isCapabilityEnabled(SECURITY_CAPABILITIES.HTML_APPLETS) ? [markdownApplet] : []),
   markdownEcharts,
   markdownDrawio,
   markdownLuckysheet,
@@ -156,7 +157,7 @@ export default [
   imageHostingPicgo,
   copyContent,
   sharePreview,
-  codeRunners,
+  ...(isCapabilityEnabled(SECURITY_CAPABILITIES.CODE_RUN) ? [codeRunners] : []),
   watchFileRefresh,
   previewFont,
   dropToOpenFile,
@@ -167,3 +168,5 @@ export default [
   textComparator,
   textAutospace,
 ]
+
+export default plugins

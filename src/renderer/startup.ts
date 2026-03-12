@@ -17,6 +17,18 @@ import { getPurchased, showPremium } from '@fe/others/premium'
 import * as extension from '@fe/others/extension'
 import { getThemeName, setTheme } from '@fe/services/theme'
 import { toggleOutline } from '@fe/services/workbench'
+import {
+  applySecurityPreset,
+  isSafeModeEnabled,
+  isSecurityProfileConfigured,
+  isCapabilityConfigured,
+  isTrustedRepoName,
+  SECURITY_CAPABILITIES,
+  SECURITY_PROFILES,
+  shouldLoadThirdPartyPlugins,
+  trustRepository,
+  type SecurityProfile,
+} from '@fe/services/security'
 import * as view from '@fe/services/view'
 import * as tree from '@fe/services/tree'
 import * as editor from '@fe/services/editor'
@@ -53,6 +65,98 @@ function switchDefaultPreviewer () {
     view.switchPreviewer(attributes.defaultPreviewer)
   } else {
     view.switchPreviewer('default')
+  }
+}
+
+function buildSecurityPresetAction (select: (profile: SecurityProfile) => void) {
+  return h(Fragment, [
+    h('button', {
+      class: 'btn tr',
+      onClick: () => useModal().cancel(),
+    }, 'Later'),
+    h('button', {
+      class: 'btn tr',
+      onClick: () => select(SECURITY_PROFILES.SAFE),
+    }, 'Safe'),
+    h('button', {
+      class: 'btn tr',
+      onClick: () => select(SECURITY_PROFILES.WORKSPACE),
+    }, 'Workspace'),
+    h('button', {
+      class: 'btn primary tr',
+      onClick: () => select(SECURITY_PROFILES.ADVANCED),
+    }, 'Advanced'),
+  ])
+}
+
+async function promptSecurityPresetIfNeeded () {
+  if (isSafeModeEnabled() || isSecurityProfileConfigured()) {
+    return
+  }
+
+  let selectedProfile: SecurityProfile | null = null
+
+  await useModal().confirm({
+    title: 'Choose Default Security Preset',
+    content: 'Safe keeps every risky capability off. Workspace enables terminal and code runner only after you trust a repository. Advanced enables all capabilities, but still requires trusted repositories for document-driven features.',
+    modalWidth: '680px',
+    action: buildSecurityPresetAction((profile) => {
+      selectedProfile = profile
+      useModal().ok()
+    }),
+  })
+
+  if (selectedProfile) {
+    await applySecurityPreset(selectedProfile)
+    useToast().show('info', `Security preset applied: ${selectedProfile}`)
+  }
+}
+
+const trustedRepoPrompts = new Set<string>()
+
+async function promptTrustCurrentRepoIfNeeded () {
+  const currentRepo = store.state.currentRepo
+  const repoName = currentRepo?.name
+
+  if (!repoName || trustedRepoPrompts.has(repoName) || isSafeModeEnabled() || isTrustedRepoName(repoName)) {
+    return
+  }
+
+  const hasTrustedOnlyCapabilities =
+    isCapabilityConfigured(SECURITY_CAPABILITIES.TERMINAL) ||
+    isCapabilityConfigured(SECURITY_CAPABILITIES.CODE_RUN) ||
+    isCapabilityConfigured(SECURITY_CAPABILITIES.THIRD_PARTY_PLUGINS) ||
+    isCapabilityConfigured(SECURITY_CAPABILITIES.MACROS) ||
+    isCapabilityConfigured(SECURITY_CAPABILITIES.HTML_APPLETS) ||
+    isCapabilityConfigured(SECURITY_CAPABILITIES.RPC)
+
+  if (!hasTrustedOnlyCapabilities) {
+    return
+  }
+
+  trustedRepoPrompts.add(repoName)
+
+  const confirm = await useModal().confirm({
+    title: 'Trust This Workspace?',
+    content: `Repository "${repoName}" is currently treated as untrusted. Trusting it unlocks enabled capabilities such as terminal, code runner, plugins, macros, and applets for documents in this workspace only.`,
+    okText: 'Trust Workspace',
+    cancelText: 'Keep Restricted',
+    modalWidth: '640px',
+  })
+
+  if (confirm) {
+    await trustRepository(repoName)
+    useToast().show('info', `Trusted workspace: ${repoName}`)
+    useModal().confirm({
+      title: 'Reload Required',
+      content: 'Reload now to activate trusted-workspace capabilities for this repository?',
+      okText: 'Reload',
+      cancelText: 'Later',
+    }).then(confirmed => {
+      if (confirmed) {
+        reloadMainWindow()
+      }
+    })
   }
 }
 
@@ -127,6 +231,10 @@ registerHook('SETTING_FETCHED', () => {
       setTheme('light')
     })
   }
+
+  setTimeout(() => {
+    promptSecurityPresetIfNeeded()
+  }, 0)
 
   setTimeout(() => {
     // reset current repo to change repo setting
@@ -236,6 +344,9 @@ store.watch(() => store.state.currentRepo, (val) => {
   setTimeout(() => {
     indexer.triggerWatchCurrentRepo()
   }, 1000)
+  setTimeout(() => {
+    promptTrustCurrentRepoIfNeeded()
+  }, 0)
 }, { immediate: true })
 
 store.watch(() => store.state.currentFile, (val) => {
@@ -274,7 +385,9 @@ store.watch(() => [
 fetchSettings()
 
 whenEditorReady().then(() => {
-  setTimeout(extension.init, 0)
+  if (shouldLoadThirdPartyPlugins()) {
+    setTimeout(extension.init, 0)
+  }
 })
 
 // json-rpc

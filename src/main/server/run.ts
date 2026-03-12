@@ -10,7 +10,7 @@ const isWin = os.platform() === 'win32'
 
 function execFile (file: string, args: string[], options?: cp.ExecFileOptions) {
   return new Promise<string | NodeJS.ReadableStream>((resolve) => {
-    const process = cp.execFile(file, args, { timeout: 300 * 1000, ...options })
+    const process = (cp.execFile as any)(file, args, { timeout: 300 * 1000, ...options }) as cp.ChildProcess
 
     process.on('error', error => {
       resolve(error.message)

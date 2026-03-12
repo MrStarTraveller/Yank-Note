@@ -23,6 +23,7 @@ import * as jwt from '../jwt'
 import { getAction } from '../action'
 import * as extension from '../extension'
 import type { FileReadResult } from '../../share/types'
+import { assertCapabilityEnabled, auditSecurityEvent, isCapabilityEnabled, SECURITY_CAPABILITIES } from '../security'
 
 const isLocalhost = (address: string) => {
   return ip.isEqual(address, '127.0.0.1') || ip.isEqual(address, '::1')
@@ -291,6 +292,7 @@ const plantumlGen = async (ctx: any, next: any) => {
 
 const runCode = async (ctx: any, next: any) => {
   if (ctx.path.startsWith('/api/run')) {
+    await assertCapabilityEnabled(SECURITY_CAPABILITIES.CODE_RUN, { path: ctx.path })
     ctx.body = await run.runCode(ctx.request.body.cmd, ctx.request.body.code)
   } else {
     await next()
@@ -496,6 +498,12 @@ const userPlugin = async (ctx: any, next: any) => {
   if (ctx.path.startsWith('/api/plugins')) {
     ctx.type = 'application/javascript; charset=utf-8'
 
+    if (!isCapabilityEnabled(SECURITY_CAPABILITIES.THIRD_PARTY_PLUGINS)) {
+      await auditSecurityEvent('third-party-plugins-blocked', { path: ctx.path })
+      ctx.body = ''
+      return
+    }
+
     let code = ''
     for (const x of await fs.readdir(USER_PLUGIN_DIR, { withFileTypes: true })) {
       if (x.isFile() && x.name.endsWith('.js')) {
@@ -641,6 +649,7 @@ const choose = async (ctx: any, next: any) => {
 
 const rpc = async (ctx: any, next: any) => {
   if (ctx.path.startsWith('/api/rpc') && ctx.method === 'POST') {
+    await assertCapabilityEnabled(SECURITY_CAPABILITIES.RPC, { path: ctx.path })
     const { code } = ctx.request.body
     const AsyncFunction = Object.getPrototypeOf(async () => 0).constructor
     const fn = new AsyncFunction('require', code)
@@ -681,6 +690,15 @@ const sendFile = async (ctx: any, next: any, filePath: string, fullback = true) 
 }
 
 const userExtension = async (ctx: any, next: any) => {
+  if (!isCapabilityEnabled(SECURITY_CAPABILITIES.THIRD_PARTY_PLUGINS)) {
+    if (ctx.path.startsWith('/api/extensions') || ctx.path.startsWith('/extensions/')) {
+      if (ctx.method !== 'GET' || ctx.path.startsWith('/extensions/')) {
+        await auditSecurityEvent('extension-capability-blocked', { path: ctx.path, method: ctx.method })
+        throw new Error('Third-party plugins and extensions are disabled by security policy')
+      }
+    }
+  }
+
   if (ctx.method === 'GET') {
     if (ctx.path.startsWith('/api/extensions')) {
       ctx.body = result('ok', 'success', await extension.list())
@@ -829,6 +847,13 @@ const server = (port = 3000) => {
 
   io.on('connection', (socket: any) => {
     if (!isLocalhost(socket.client.conn.remoteAddress)) {
+      socket.disconnect()
+      return
+    }
+
+    if (!isCapabilityEnabled(SECURITY_CAPABILITIES.TERMINAL)) {
+      auditSecurityEvent('terminal-blocked', { remoteAddress: socket.client.conn.remoteAddress })
+      socket.emit('output', 'Integrated terminal is disabled by security policy.')
       socket.disconnect()
       return
     }

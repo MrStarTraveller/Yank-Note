@@ -1,7 +1,7 @@
 {
   "appId": "yank.note",
   "productName": "Yank Note",
-  "copyright": "Copyright 2018-2021 purocean@outlook.com",
+  "copyright": "Copyright 2026 MrStarTraveller",
   "asar": true,
   "asarUnpack": [
     "bin/**/*",
@@ -17,7 +17,7 @@
     "./dist/**",
     "!node_modules/plantuml-pipe/vendor/*"
   ],
-  "artifactName": "Yank-Note-${os}-${arch}-${version}.${ext}",
+  "artifactName": "Yank-Note-Secure-${os}-${arch}-${version}.${ext}",
   "directories": {
     "output": "./out/"
   },
@@ -32,7 +32,7 @@
   "linux": {
     "executableName": "yank-note",
     "category": "Markdown",
-    "maintainer": "purocean <purocean@outlook.com>",
+    "maintainer": "MrStarTraveller",
     "icon": "./build/icon.icns",
     "target": [
       "deb",

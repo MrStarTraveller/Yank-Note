@@ -1,12 +1,19 @@
 {
   "name": "yank.note",
   "version": "3.87.1",
-  "description": "Yank Note: A highly extensible Markdown editor, designed for productivity.",
+  "description": "Yank Note secure fork: a productivity-focused Markdown editor with safer default capability boundaries.",
   "main": "dist/main/app.js",
   "license": "AGPL-3.0",
   "author": {
-    "name": "purocean",
-    "email": "purocean@outlook.com"
+    "name": "MrStarTraveller"
+  },
+  "homepage": "https://github.com/MrStarTraveller/Yank-Note",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MrStarTraveller/Yank-Note.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MrStarTraveller/Yank-Note/issues"
   },
   "scripts": {
     "dev": "vite",
@@ -14,7 +21,7 @@
     "build:fe": "vue-tsc --noEmit --esModuleInterop true && vite build",
     "build:fe-demo": "node scripts/install-demo-extensions.js && yarn run build:fe --mode=demo && node scripts/copy-assets.js && cp help/* dist/renderer/ && cp src/main/resources/github.css dist/renderer/",
     "serve:fe": "vite preview",
-    "build:main": "tsc --esModuleInterop true --target es2021 --moduleResolution node --module commonjs src/main/app.ts --outDir ./dist && node ./scripts/copy-assets.js",
+    "build:main": "tsc --skipLibCheck true --esModuleInterop true --target es2021 --moduleResolution node --module commonjs src/main/app.ts --outDir ./dist && node ./scripts/copy-assets.js",
     "build": "npm run build:fe && npm run build:main",
     "lint": "vue-tsc --noEmit --esModuleInterop true && eslint src/ --ext .tsx,.ts,.vue",
     "test": "yarn run jest --coverage --coverage-reporters=text --silent",

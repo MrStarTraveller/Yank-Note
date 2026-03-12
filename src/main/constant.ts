@@ -29,7 +29,7 @@ export const BUILD_IN_STYLES = ['github.css']
 
 export const PANDOC_REFERENCE_FILE = 'pandoc-reference.docx'
 
-export const GITHUB_URL = 'https://github.com/purocean/yn'
+export const GITHUB_URL = 'https://github.com/MrStarTraveller/Yank-Note'
 
 export const FLAG_DISABLE_SERVER = false
 export const FLAG_DISABLE_DEVTOOL = false

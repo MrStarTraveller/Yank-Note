@@ -14,9 +14,9 @@ export function $args () {
   return new URLSearchParams(win.location.search)
 }
 
-export const URL_GITHUB = 'https://github.com/purocean/yn'
+export const URL_GITHUB = 'https://github.com/MrStarTraveller/Yank-Note'
 export const URL_MAS = 'https://apps.apple.com/cn/app/yank-note/id1551528618'
-export const URL_MAS_LIMITATION = 'https://github.com/purocean/yn/issues/65#issuecomment-1065799677'
+export const URL_MAS_LIMITATION = 'https://github.com/MrStarTraveller/Yank-Note/issues'
 
 export const JWT_TOKEN = $args().get('token') || ''
 export const MODE: 'normal' | 'share-preview' = $args().get('mode') || 'normal' as any
@@ -26,6 +26,7 @@ export const FLAG_DISABLE_XTERM = false
 export const FLAG_MAS = false
 export const FLAG_DEMO = import.meta.env.MODE === 'demo'
 export const FLAG_READONLY = $args().get('readonly') === 'true' || MODE !== 'normal'
+export const FLAG_SAFE_MODE = $args().get('safe-mode') === 'true'
 export const FLAG_DEBUG = import.meta.env.MODE === 'development' || $args().get('debug') === 'true'
 
 export const HELP_REPO_NAME = '__help__'

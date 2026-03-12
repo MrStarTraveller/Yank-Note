@@ -1,20 +1,17 @@
-import type { RequestOptions } from 'http'
 import { dialog, app, shell } from 'electron'
 import { dirname } from 'path'
 import { readdirSync } from 'fs'
-import { autoUpdater, CancellationToken, UpdateInfo } from 'electron-updater'
-import { resolveFiles } from 'electron-updater/out/providers/Provider'
-import { GitHubProvider } from 'electron-updater/out/providers/GitHubProvider'
+import { autoUpdater, CancellationToken } from 'electron-updater'
 import logger from 'electron-log'
 import ProgressBar from 'electron-progressbar'
-import { HOMEPAGE_URL } from '../share/misc'
 import store from './storage'
 import { GITHUB_URL } from './constant'
 import { $t } from './i18n'
 import { registerAction } from './action'
 import config from './config'
+import { auditSecurityEvent, isCapabilityEnabled, SECURITY_CAPABILITIES } from './security'
 
-type Source = 'auto' | 'github' | 'yank-note'
+type Source = 'disabled' | 'github'
 
 logger.transports.file.level = 'info'
 autoUpdater.logger = logger
@@ -24,64 +21,15 @@ let progressBar: any = null
 const isAppx = app.getAppPath().indexOf('\\WindowsApps\\') > -1
 let disabled = isAppx || (process as any).mas
 
-class UpdateProvider extends GitHubProvider {
-  constructor (options: any, updater: any, runtimeOptions: any) {
-    super(options, updater, runtimeOptions)
+function getSource (): Source {
+  const source = config.get('updater.source', 'disabled')
+  return source === 'github' ? 'github' : 'disabled'
+}
 
-    const request = this.executor.request.bind(this.executor)
-    this.executor.request = (options: RequestOptions, ...args: any[]) => {
-      if (!this.isGithub()) {
-        const _url = new URL(HOMEPAGE_URL)
-        if (options.path === '/purocean/yn/releases.atom') {
-          options.hostname = _url.hostname
-          options.path = '/api/update-info/releases.atom'
-        } else if (options.path === '/purocean/yn/releases/latest') {
-          options.hostname = _url.hostname
-          options.path = '/api/update-info/latest'
-        } else if (options.path?.startsWith('/purocean/yn/releases/download')) {
-          options.hostname = _url.hostname
-          options.path = options.path.replace(/\/purocean\/yn\/releases\/download\/v[^/]+\//, '/download/')
-        }
-
-        console.log('request', options.protocol + '//' + options.hostname + options.path)
-      }
-
-      return request(options, ...args)
-    }
-  }
-
-  private getSource (): Exclude<Source, 'auto'> {
-    let source: Source = config.get('updater.source', 'auto')
-
-    if (source !== 'github' && source !== 'yank-note') {
-      source = 'auto'
-    }
-
-    if (source === 'auto') {
-      if (app.getLocale().toLowerCase().includes('zh-cn')) {
-        source = 'yank-note'
-      } else {
-        source = 'github'
-      }
-    }
-
-    return source
-  }
-
-  private isGithub () {
-    return this.getSource() === 'github'
-  }
-
-  resolveFiles (updateInfo: UpdateInfo): ReturnType<GitHubProvider['resolveFiles']> {
-    if (this.isGithub()) {
-      return super.resolveFiles(updateInfo as any)
-    }
-
-    const baseUrl = new URL(HOMEPAGE_URL)
-
-    // still replace space to - due to backward compatibility
-    return resolveFiles(updateInfo, baseUrl, p => '/download/' + p.replace(/ /g, '-'))
-  }
+function updaterEnabled () {
+  return !disabled &&
+    isCapabilityEnabled(SECURITY_CAPABILITIES.AUTO_UPDATE) &&
+    getSource() === 'github'
 }
 
 const init = (call?: () => void) => {
@@ -99,7 +47,7 @@ const init = (call?: () => void) => {
     }
   }
 
-  autoUpdater.setFeedURL({ provider: 'custom', owner: 'purocean', repo: 'yn', updateProvider: UpdateProvider as any })
+  autoUpdater.setFeedURL({ provider: 'github', owner: 'MrStarTraveller', repo: 'Yank-Note' })
   autoUpdater.autoDownload = false
 
   autoUpdater.on('update-available', async info => {
@@ -198,8 +146,9 @@ const init = (call?: () => void) => {
   })
 }
 
-export function checkForUpdates () {
-  if (disabled) {
+export async function checkForUpdates () {
+  if (!updaterEnabled()) {
+    await auditSecurityEvent('update-check-skipped', { source: getSource(), disabled, reason: 'policy' })
     return
   }
 
@@ -216,7 +165,7 @@ export function checkForUpdates () {
 }
 
 export function autoCheckForUpdates () {
-  if (disabled) {
+  if (!updaterEnabled()) {
     return
   }
 
@@ -226,7 +175,12 @@ export function autoCheckForUpdates () {
 }
 
 export function changeSource () {
-  autoUpdater.checkForUpdates()
+  if (getSource() === 'disabled') {
+    store.set('dontCheckUpdates', true)
+    return
+  }
+
+  autoCheckForUpdates()
 }
 
 app.whenReady().then(() => {

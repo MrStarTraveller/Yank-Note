@@ -83,6 +83,7 @@ const getUrl = (mode?: typeof urlMode) => {
 
   const args = Object.entries(yargs.argv).filter(x => [
     'readonly',
+    'safe-mode',
     'show-status-bar',
     'init-repo',
     'init-file',

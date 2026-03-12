@@ -1,6 +1,18 @@
 # Yank Note
 
-一款**强大可扩展**的 Markdown 编辑器，为生产力而生。**[全平台下载](https://github.com/purocean/yn/releases)** ｜ **[在线体验>>>](https://demo.yank-note.com/)**
+一款**强大可扩展**的 Markdown 编辑器，为生产力而生。**[全平台下载](https://github.com/MrStarTraveller/Yank-Note/releases)** ｜ **[源码仓库](https://github.com/MrStarTraveller/Yank-Note)**
+
+## Fork 方向
+
+这个仓库目前按“默认更安全、适合公开发布”的方向维护。
+
+- 对外来 Markdown 内容采用更保守的默认策略
+- 高风险能力默认关闭
+- 插件、宏、代码执行、终端、RPC、自动更新都改为显式开启
+- 增加“可信工作区”机制，危险能力仅对你显式信任的仓库生效
+- 支持 `--safe-mode` 安全模式启动
+
+详细说明见 [SECURITY.md](./SECURITY.md)、[安全模型](./docs/security-model.md)、[迁移说明](./docs/migration.md)。
 
 [![Download](./help/mas_en.svg?.inline)](https://apps.apple.com/cn/app/yank-note/id1551528618) [Mac App Store 版本说明](https://github.com/purocean/yn/issues/65#issuecomment-1065799677)
 
@@ -22,6 +34,7 @@
 ## 注意事项
 
 - 为了更高的拓展性和方便性，Yank Note 牺牲了安全防护（命令执行，任意文件读写）。如果要用它打开外来 Markdown 文件，⚠️**请务必仔细甄别文件内容是值得信任的**⚠️。
+- 这个 fork 已把上述高风险能力改为默认关闭，需在“安全”设置页中显式开启；涉及工作区执行的能力，还需要你手动信任当前仓库后才会真正生效。
 - 加密文件的加密解密操作均在前端完成，请**务必牢记自己的密码**。一旦密码丢失，就只能暴力破解了。
 
 ## 特色功能

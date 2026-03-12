@@ -1,6 +1,18 @@
 # Yank Note
 
-A **highly extensible** Markdown editor, designed for productivity. **[Download](https://github.com/purocean/yn/releases)** | **[Try it Online >>>](https://demo.yank-note.com/)**
+A **highly extensible** Markdown editor, designed for productivity. **[Download](https://github.com/MrStarTraveller/Yank-Note/releases)** | **[Source Repository](https://github.com/MrStarTraveller/Yank-Note)**
+
+## Fork Direction
+
+This repository is maintained as a security-hardened fork for public distribution.
+
+- Safer defaults for external markdown content
+- High-risk capabilities disabled by default
+- Explicit capability switches for plugins, macros, code execution, terminal access, RPC, and updates
+- Trusted-workspace flow so powerful capabilities stay scoped to repositories you explicitly approve
+- `--safe-mode` startup support for stricter sessions
+
+See [SECURITY.md](./SECURITY.md), [Security Model](./docs/security-model.md), and [Migration Notes](./docs/migration.md).
 
 [![Download](./help/mas_en.svg?.inline)](https://apps.apple.com/cn/app/yank-note/id1551528618) [Not recommended](https://github.com/purocean/yn/issues/65#issuecomment-1065799677)
 
@@ -22,6 +34,7 @@ English | [中文说明](./README_ZH-CN.md) | [Русский](./README_RU.md)
 ## Attention
 
 - For more extendable, Yank Note sacrifices security protection (command execution, arbitrary file reading and writing). If you want to use it to open a foreign Markdown file, ⚠️**be sure to carefully identify whether the content of the file is trustworthy**⚠️.
+- This fork changes those defaults: risky capabilities stay disabled until you explicitly enable them in the Security settings tab, and workspace-scoped capabilities remain restricted until you trust the current repository.
 - The encryption and decryption of encrypted files are both completed at the front end. Please **be sure to remember your password**. Once the password is lost, it can only be cracked violently.
 
 ## Characteristic functions
